@@ -3,6 +3,7 @@ package ru.skypro.impl;
 import ru.skypro.StringList;
 import ru.skypro.exceptions.ElementDoNotExistException;
 import ru.skypro.exceptions.IndexOutOfBoundsException;
+import ru.skypro.exceptions.InputNullException;
 
 import java.util.Arrays;
 
@@ -17,15 +18,14 @@ public class StringListImpl implements StringList {
 
     @Override
     public String add(String item) {
-        if (checkNotNullParameter(item)) {
-            if (size == arr.length) {
-                arr = grow();
-            }
-            arr[size++] = item;
-            return item;
-        } else {
-            throw new NullPointerException();
+        if (item == null) {
+            throw new InputNullException("Input String is null");
         }
+        if (size == arr.length) {
+            arr = grow();
+        }
+        arr[size++] = item;
+        return item;
     }
 
     private String[] grow() {
@@ -38,119 +38,119 @@ public class StringListImpl implements StringList {
         return arr = Arrays.copyOf(arr, newCapacity);
     }
 
-    private boolean checkNotNullParameter(Object o) {
-        return o != null;
-    }
-
     @Override
     public String add(int index, String item) {
-        if (checkNotNullParameter(item)) {
-            if (index > size - 1) {
-                throw new IndexOutOfBoundsException("Index out of current capacity of StringList");
-            } else {
-                if (size  == arr.length) {
-                    arr = grow();
-                }
-                System.arraycopy(arr, index, arr, index + 1, size - index );
-                arr[index] = item;
-                size++;
-                return item;
-            }
-        } else {
-            throw new NullPointerException();
+        if (index > size - 1) {
+            throw new IndexOutOfBoundsException("Index out of current capacity of StringList");
         }
+        if (item == null) {
+            throw new InputNullException("Input String is null");
+        }
+        if (size  == arr.length) {
+            arr = grow();
+        }
+        for (int i = size - 1; i >= index; i--) {
+            String temp = arr[i];
+            arr[i + 1] = temp;
+        }
+        arr[index] = item;
+        size++;
+        return item;
+
     }
 
     @Override
     public String set(int index, String item) {
-        if (checkNotNullParameter(item)) {
-            if (index > size - 1) {
-                throw new IndexOutOfBoundsException("Index out of current capacity of StringList");
-            } else {
-                arr[index] = item;
-                return item;
-            }
-        } else {
-            throw new NullPointerException();
+        if (index > size - 1) {
+            throw new IndexOutOfBoundsException("Index out of current capacity of StringList");
         }
+        if (item == null) {
+            throw new InputNullException("Input String is null");
+        }
+        arr[index] = item;
+        return item;
     }
 
     @Override
     public String remove(String item) {
-        if (checkNotNullParameter(item)) {
-            int i = indexOf(item);
-            if (i == -1) {
-                throw new ElementDoNotExistException("Element don't exist in this StringList");
-            } else {
-                String removedElement = arr[i];
-                int newSize = size - 1;
-                System.arraycopy(arr, i + 1, arr, i, newSize - i);
-                size = newSize;
-                if (size > DEFAULT_CAPACITY * 2 || size <= arr.length / 2) {
-                    arr = trim();
-                }
-                return removedElement;
-            }
-        } else {
-            throw new NullPointerException();
+        int i = indexOf(item);
+        if (i == -1) {
+            throw new ElementDoNotExistException("Element don't exist in this StringList");
         }
+        if (item == null) {
+            throw new InputNullException("Input String is null");
+        }
+        String removedElement = arr[i];
+        for (int j = i + 1; j < size; j++) {
+            String temp = arr[j];
+            arr[j - 1] = temp;
+        }
+        size--;
+        if (size > DEFAULT_CAPACITY * 2 || size <= arr.length / 2) {
+            arr = trim();
+        }
+        return removedElement;
     }
 
     @Override
     public String remove(int index) {
-        if (index == -1) {
+        if (index < 0) {
             throw new ElementDoNotExistException("Element don't exist in this StringList");
-        } else {
-            String removedElement = arr[index];
-            int newSize = size - 1;
-            System.arraycopy(arr, index + 1, arr, index, newSize - index);
-            size = newSize;
-            if (size > DEFAULT_CAPACITY * 2 || size <= arr.length / 2) {
-                arr = trim();
-            }
-            return removedElement;
         }
+        if (index > size - 1) {
+            throw new IndexOutOfBoundsException("Index out of current capacity of StringList");
+        }
+        String removedElement = arr[index];
+        for (int j = index + 1; j < size; j++) {
+            String temp = arr[j];
+            arr[j - 1] = temp;
+        }
+        size--;
+        if (size > DEFAULT_CAPACITY * 2 || size <= arr.length / 2) {
+            arr = trim();
+        }
+        return removedElement;
     }
 
     @Override
     public boolean contains(String item) {
-        if (checkNotNullParameter(item)) {
-            return indexOf(item) > -1;
-        } else {
-            throw new NullPointerException();
+        if (item == null) {
+            throw new InputNullException("Input String is null");
         }
+        return indexOf(item) > -1;
     }
 
     @Override
     public int indexOf(String item) {
-        if (checkNotNullParameter(item)) {
-            for (int i = 0; i < arr.length; i++) {
-                if (arr[i].equals(item)) {
-                    return i;
-                }
-            }
-            return -1;
-        } else {
-            throw new NullPointerException();
+        if (item == null) {
+            throw new InputNullException("Input String is null");
         }
+        for (int i = 0; i < arr.length; i++) {
+            if (arr[i].equals(item)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Override
     public int lastIndexOf(String item) {
-        if (checkNotNullParameter(item)) {
-            for (int i = arr.length - 1; i >= 0; i--) {
-                if (arr[i].equals(item)) {
-                    return i;
-                }
-            }
-            return -1;
-        } else {
-            throw new NullPointerException();
+        if (item == null) {
+            throw new InputNullException("Input String is null");
         }
+        for (int i = arr.length - 1; i >= 0; i--) {
+            if (arr[i].equals(item)) {
+                return i;
+            }
+        }
+        return -1;
     }
 
     @Override
     public String get(int index) {
+        if (index < 0) {
+            throw new ElementDoNotExistException("Element don't exist in this StringList");
+        }
         if (index > size - 1) {
             throw new IndexOutOfBoundsException("Index out of current capacity of StringList");
         } else {
