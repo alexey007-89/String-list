@@ -1,23 +1,24 @@
 package ru.skypro.impl;
 
-import ru.skypro.StringList;
+import ru.skypro.IntegerList;
 import ru.skypro.exceptions.ElementDoNotExistException;
 import ru.skypro.exceptions.IndexOutOfBoundsException;
 import ru.skypro.exceptions.InputNullException;
 
 import java.util.Arrays;
+import java.util.Objects;
 
-public class StringListImpl implements StringList {
+public class IntegerListImpl implements IntegerList {
     private static final int DEFAULT_CAPACITY = 10;
-    private String[] arr;
+    private Integer[] arr;
     private int size;
 
-    public StringListImpl() {
-        this.arr = new String[DEFAULT_CAPACITY];
+    public IntegerListImpl() {
+        this.arr = new Integer[DEFAULT_CAPACITY];
     }
 
     @Override
-    public String add(String item) {
+    public Integer add(Integer item) {
         checkNotNull(item);
         if (size == arr.length) {
             arr = grow();
@@ -27,14 +28,14 @@ public class StringListImpl implements StringList {
     }
 
     @Override
-    public String add(int index, String item) {
+    public Integer add(int index, Integer item) {
         checkIndexIsInsideSize(index);
         checkNotNull(item);
         if (size  == arr.length) {
             arr = grow();
         }
         for (int i = size - 1; i >= index; i--) {
-            String temp = arr[i];
+            Integer temp = arr[i];
             arr[i + 1] = temp;
         }
         arr[index] = item;
@@ -44,7 +45,7 @@ public class StringListImpl implements StringList {
     }
 
     @Override
-    public String set(int index, String item) {
+    public Integer set(int index, Integer item) {
         checkIndexIsInsideSize(index);
         checkNotNull(item);
         arr[index] = item;
@@ -52,7 +53,7 @@ public class StringListImpl implements StringList {
     }
 
     @Override
-    public String remove(String item) {
+    public Integer remove(Integer item) {
         int i = indexOf(item);
         if (i == -1) {
             throw new ElementDoNotExistException("Element don't exist in this StringList");
@@ -62,31 +63,32 @@ public class StringListImpl implements StringList {
     }
 
     @Override
-    public String remove(int index) {
+    public Integer remove(int index) {
         checkPositiveIndex(index);
         checkIndexIsInsideSize(index);
-        String removedElement = arr[index];
+        Integer removedElement = arr[index];
         for (int j = index + 1; j < size; j++) {
-            String temp = arr[j];
+            Integer temp = arr[j];
             arr[j - 1] = temp;
         }
         arr[--size] = null;
-        if (size > DEFAULT_CAPACITY * 2 || size <= arr.length / 2) {
+        if (arr.length >= DEFAULT_CAPACITY * 2 && size <= arr.length / 2) {
             arr = trim();
         }
         return removedElement;
     }
 
     @Override
-    public boolean contains(String item) {
+    public Integer contains(Integer item) {
         checkNotNull(item);
-        return indexOf(item) > -1;
+        sort();
+        return binarySearch(item);
     }
 
     @Override
-    public int indexOf(String item) {
+    public int indexOf(Integer item) {
         checkNotNull(item);
-        for (int i = 0; i < arr.length; i++) {
+        for (int i = 0; i < size; i++) {
             if (arr[i].equals(item)) {
                 return i;
             }
@@ -95,9 +97,9 @@ public class StringListImpl implements StringList {
     }
 
     @Override
-    public int lastIndexOf(String item) {
+    public int lastIndexOf(Integer item) {
         checkNotNull(item);
-        for (int i = arr.length - 1; i >= 0; i--) {
+        for (int i = size - 1; i >= 0; i--) {
             if (arr[i].equals(item)) {
                 return i;
             }
@@ -106,14 +108,14 @@ public class StringListImpl implements StringList {
     }
 
     @Override
-    public String get(int index) {
+    public Integer get(int index) {
         checkPositiveIndex(index);
         checkIndexIsInsideSize(index);
         return arr[index];
     }
 
     @Override
-    public boolean equals(StringList otherList) {
+    public boolean equals(IntegerList otherList) {
         if (otherList == null) {
             throw new NullPointerException();
         }
@@ -140,24 +142,58 @@ public class StringListImpl implements StringList {
 
     @Override
     public void clear() {
-        arr = new String[DEFAULT_CAPACITY];
+        arr = new Integer[DEFAULT_CAPACITY];
         size = 0;
     }
 
     @Override
-    public String[] toArray() {
+    public Integer[] toArray() {
         return Arrays.copyOf(arr,size);
     }
 
     @Override
     public String toString() {
-        return "StringListImpl{" +
+        return "IntegerListImpl{" +
                 "arr=" + Arrays.toString(arr) +
                 ", size=" + size +
                 '}';
     }
 
-    private void checkNotNull(String item) {
+    public void sortBubble() {
+        for (int i = 0; i < size - 1; i++) {
+            for (int j = 0; j < size - 1 - i; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    swapElements(arr, j, j + 1);
+                }
+            }
+        }
+    }
+
+    public void sortSelection() {
+        for (int i = 0; i < size - 1; i++) {
+            int minElementIndex = i;
+            for (int j = i + 1; j < size; j++) {
+                if (arr[j] < arr[minElementIndex]) {
+                    minElementIndex = j;
+                }
+            }
+            swapElements(arr, i, minElementIndex);
+        }
+    }
+
+    public void sortInsertion() {
+        for (int i = 1; i < size; i++) {
+            int temp = arr[i];
+            int j = i;
+            while (j > 0 && arr[j - 1] >= temp) {
+                arr[j] = arr[j - 1];
+                j--;
+            }
+            arr[j] = temp;
+        }
+    }
+
+    private void checkNotNull(Integer item) {
         if (item == null) {
             throw new InputNullException("Input String is null");
         }
@@ -175,14 +211,45 @@ public class StringListImpl implements StringList {
         }
     }
 
-    private String[] grow() {
+    private Integer[] grow() {
         int newCapacity = arr.length * 2;
         return arr = Arrays.copyOf(arr, newCapacity);
     }
 
-    private String[] trim() {
+    private Integer[] trim() {
         int newCapacity = arr.length / 2;
         return arr = Arrays.copyOf(arr, newCapacity);
     }
+
+    private static void swapElements(Integer[] arr, int indexA, int indexB) {
+        Integer tmp = arr[indexA];
+        arr[indexA] = arr[indexB];
+        arr[indexB] = tmp;
+    }
+
+    private void sort() {
+        sortSelection();
+    }
+
+    private Integer binarySearch(Integer element) {
+        int min = 0;
+        int max = size - 1;
+
+        while (min <= max) {
+            int mid = (min + max) / 2;
+
+            if (Objects.equals(element, arr[mid])) {
+                return mid;
+            }
+
+            if (element < arr[mid]) {
+                max = mid - 1;
+            } else {
+                min = mid + 1;
+            }
+        }
+        return - 1;
+    }
+
 }
 
